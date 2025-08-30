@@ -1,16 +1,7 @@
 #include "Servo.h"
-#include "Wire.h"
+#include <LiquidCrystal.h>
 
-#include <Adafruit_SSD1306.h>
-
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-
-// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-#define SERVO_PIN 6 // Digital pin connected to the DHT sensor
+#define SERVO_PIN 3 // Digital pin connected to the DHT sensor
 
 #define SAMPLE_TIME 200 // PID interval in miliseconds
 
@@ -21,11 +12,13 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 #define WARMUP_RATE 0.05
 #define COOLDOWN_RATE 0.01
 
+LiquidCrystal lcd(12, 11, 10, 9, 8, 7);
+
 Servo valveServo; // Servo controller
 
 int currentPos = 0; // Servo position 0 = midpoint
 
-float kp = 0.5, ki = 0.0, kd = 0.0;
+float kp = 5, ki = 2.5, kd = 0.01;
 
 long time, startTime;
 long et;
@@ -44,24 +37,14 @@ void setup()
   valveServo.attach(SERVO_PIN);
   valveServo.write(VALVE_OFFSET + currentPos);
 
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  }
+  lcd.begin(16, 2);
 
-  // Show initial display buffer contents on the screen --
-  // the library initializes this with an Adafruit splash screen.
-  display.display();
-  delay(2000); // Pause for 2 seconds
-
-  display.setTextSize(2);      // Normal 1:1 pixel scale
-  display.setTextColor(WHITE); // Draw white text
-  display.cp437(true);  // Use full 256 char 'Code Page 437' font
-
-  // Clear the buffer
-  display.clearDisplay();
-
+  lcd.clear();
+  
+  lcd.setCursor(0, 0);
+  lcd.print("CONTROLE P.I.D.");
+  lcd.setCursor(0, 1);
+  lcd.print("TEMPERATURA:00.0");
 
   for ( int i=0; i < 3; ++i)
   {
@@ -115,10 +98,8 @@ void loop()
   Serial.print(" ");
   Serial.println(currentTemp);
 
-  display.clearDisplay();
-  display.setCursor(35, 20);
-  display.print(currentTemp);
-  display.display();
+  lcd.setCursor(12, 1);
+  lcd.print(currentTemp);
 
   
 }
